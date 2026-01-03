@@ -1,4 +1,5 @@
 import 'package:english_app/src/feature/word/word_widget.dart';
+import 'package:english_app/src/feature/word/word_widget_shimmer.dart';
 import 'package:flutter/material.dart';
 
 class LevelPage extends StatefulWidget {
@@ -34,9 +35,9 @@ class _LevelPageState extends State<LevelPage> {
                   for (int j = 0; j < widget.width; ++j)
                     Padding(
                       padding: const EdgeInsets.all(2.0),
-                      child: WordWidget(
+                      child: DraggableWordWidget(
+                        wordWidth: wordWidth,
                         text: widget.words[i * widget.width + j],
-                        width: wordWidth,
                       ),
                     ),
                 ],
@@ -44,6 +45,45 @@ class _LevelPageState extends State<LevelPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class DraggableWordWidget extends StatelessWidget {
+  const DraggableWordWidget({
+    super.key,
+    required this.wordWidth,
+    required this.text,
+  });
+
+  final double wordWidth;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return DragTarget(
+      onWillAcceptWithDetails: (details) {
+        final data = details.data;
+        return data != null && data != text;
+      },
+      builder:
+          (
+            BuildContext context,
+            List<String?> candidateData,
+            List<dynamic> rejectedData,
+          ) {
+            final hasHover = candidateData.isNotEmpty;
+            return Draggable<String>(
+              data: text,
+              feedback: WordWidget(text: text, width: wordWidth),
+              childWhenDragging: WordWidgetShimmer(width: wordWidth),
+              child: WordWidget(
+                text: text,
+                width: wordWidth,
+                isHighlighted: hasHover,
+              ),
+            );
+          },
     );
   }
 }
