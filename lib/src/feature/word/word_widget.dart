@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 class WordWidget extends StatelessWidget {
   final String text;
   final double width;
-  const WordWidget({super.key, required this.text, required this.width});
+  final bool isHighlighted;
+  const WordWidget({
+    super.key,
+    required this.text,
+    required this.width,
+    this.isHighlighted = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +22,15 @@ class WordWidget extends StatelessWidget {
           BoxShadow(
             color: theme.shadowColor.withAlpha(100),
             offset: Offset(0, 2),
-            blurRadius: 5
+            blurRadius: 5,
           ),
+          if (isHighlighted)
+            BoxShadow(
+              color: theme.shadowColor,
+              offset: Offset(0, 0),
+              blurRadius: 6,
+              blurStyle: BlurStyle.solid
+            ),
         ],
       ),
       child: SizedBox(
