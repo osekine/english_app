@@ -20,7 +20,7 @@ class WordWidgetShimmer extends StatelessWidget {
           ),
         ],
       ),
-      child: SizedBox(width: width, height: 32),
+      child: SizedBox(width: width, height: 52),
     );
   }
 }
