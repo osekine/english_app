@@ -78,8 +78,11 @@ class DraggableWordWidget extends StatefulWidget {
   State<DraggableWordWidget> createState() => _DraggableWordWidgetState();
 }
 
-class _DraggableWordWidgetState extends State<DraggableWordWidget> {
+class _DraggableWordWidgetState extends State<DraggableWordWidget>
+    with TickerProviderStateMixin<DraggableWordWidget> {
   late String text;
+  Offset? position;
+  bool _isMoving = false;
 
   @override
   void initState() {
@@ -106,15 +109,23 @@ class _DraggableWordWidgetState extends State<DraggableWordWidget> {
           ) {
             final hasHover = candidateData.isNotEmpty;
             return Draggable<String>(
-              onDragCompleted: _changeDraggable,
+              onDragStarted: () {
+                position = _getPosition();
+              },
+              onDragEnd: (details) {
+                _changeDraggable();
+                _animateCard(context, details.offset, position!);
+              },
               data: text,
               feedback: WordWidget(text: text, width: widget.wordWidth),
               childWhenDragging: WordWidgetShimmer(width: widget.wordWidth),
-              child: WordWidget(
-                text: text,
-                width: widget.wordWidth,
-                isHighlighted: hasHover,
-              ),
+              child: _isMoving
+                  ? WordWidgetShimmer(width: widget.wordWidth)
+                  : WordWidget(
+                      text: text,
+                      width: widget.wordWidth,
+                      isHighlighted: hasHover,
+                    ),
             );
           },
     );
@@ -133,5 +144,46 @@ class _DraggableWordWidgetState extends State<DraggableWordWidget> {
       text = '$a';
       setState(() {});
     }
+  }
+
+  void _animateCard(BuildContext context, Offset from, Offset to) {
+    _isMoving = true;
+    setState(() {});
+    final child = WordWidget(text: text, width: widget.wordWidth);
+
+    final overlay = Overlay.of(context);
+    final controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    final animation = Tween<Offset>(
+      begin: from,
+      end: to,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOutCubic));
+
+    final entry = OverlayEntry(
+      builder: (_) => AnimatedBuilder(
+        animation: animation,
+        builder: (_, _) => Positioned(
+          left: animation.value.dx,
+          top: animation.value.dy,
+          child: child,
+        ),
+      ),
+    );
+    overlay.insert(entry);
+
+    controller.forward().whenComplete(() {
+      _isMoving = false;
+      setState(() {});
+      entry.remove();
+      controller.dispose();
+    });
+  }
+
+  Offset _getPosition() {
+    final renderBox = context.findRenderObject() as RenderBox;
+    return renderBox.localToGlobal(Offset.zero);
   }
 }
