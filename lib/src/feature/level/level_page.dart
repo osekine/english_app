@@ -113,7 +113,7 @@ class _DraggableWordWidgetState extends State<DraggableWordWidget>
                 position = _getPosition();
               },
               onDragEnd: (details) {
-                _changeDraggable();
+                if(details.wasAccepted) _changeDraggable();
                 _animateCard(context, details.offset, position!);
               },
               data: text,
